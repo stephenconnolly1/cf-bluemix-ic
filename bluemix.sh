@@ -33,7 +33,7 @@ function reprovision {
 		IP_ADDRESS=$3	
 	fi
 	cf ic rm $2 --force
-	CONTAINERID=$(cf ic run -p $CF_PORT:$CF_PORT registry.eu-gb.bluemix.net/aie_london/$CONTAINER_NAME)
+	CONTAINERID=$(cf ic run -p $CF_PORT:$CF_PORT registry.eu-gb.bluemix.net/aie_london/$CONTAINER_NAME $LAUNCH_CMD)
 	cf ic ip bind $IP_ADDRESS $CONTAINERID
 	return 0
 }
