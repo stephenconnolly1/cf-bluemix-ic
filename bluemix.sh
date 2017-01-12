@@ -6,6 +6,7 @@ function checkvar {
 	if [ -z ${1} ];
 		then
 			echo "Variable ${1} is not set, please check your wercker environment variables."
+			exit 1;
 		else
 			return 0;
 	fi
@@ -63,13 +64,14 @@ RUNNING_CONTAINER=$(echo "$CF_OUTPUT" | grep $IMAGE_NAME | cut -d '|' -f 1)
 running ${CF_OUTPUT} ${RUNNING_CONTAINER}
 
 if [[ "$?" != "0" ]]; then
-	# check if port exposed, if so request an ip, else return 0.
+	echo "Check if port exposed, if so request an ip, else return 0."
         if [[ -z "${CF_PORT}" ]]; then
 	  setip ${RUNNING_CONTAINER}
           echo "Serving on: $(IP_ADDRESS):$(CF_PORT)"
         fi
 
 else
+	echo "Reprov"
 	reprovision ${CF_OUTPUT} ${RUNNING_CONTAINER} ${IP_ADDRESS}
         echo "Serving on:  $(IP_ADDRESS):$(CF_PORT)"
 fi
