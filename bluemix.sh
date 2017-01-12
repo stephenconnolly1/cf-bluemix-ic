@@ -52,7 +52,7 @@ function reprovision {
 	return 0
 }
 
-for i in VARS; do checkvar $i; done
+# for i in $VARS; do checkvar $i; done
 
 cfinit
 
