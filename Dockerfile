@@ -11,7 +11,7 @@ RUN apt-get install -y docker-engine
 RUN wget -q -O - 'https://cli.run.pivotal.io/stable?release=linux64-binary' | tar -xzf - -C /usr/local/bin 
 RUN cf install-plugin -f https://static-ice.ng.bluemix.net/ibm-containers-linux_x64
 
-ADD bluemix.sh bluemix.sh
-CMD chmod +x bluemix.sh
+ADD bluemix.sh /bluemix.sh
+CMD chmod +x /bluemix.sh
 
-ENTRYPOINT bluemix.sh
+ENTRYPOINT /bluemix.sh
