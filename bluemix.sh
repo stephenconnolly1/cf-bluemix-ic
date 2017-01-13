@@ -82,10 +82,10 @@ if [[ "$?" != "0" ]];
       setip ${RUNNING_CONTAINER}
       reprovision ${CF_OUTPUT} ${RUNNING_CONTAINER} ${IP_ADDRESS}
       echo "Serving on: ${IP_ADDRESS}:${CF_PORTS}"
-      curl -X POST -H 'Content-type: application/json' --data '{"text":"The wercker build of ${WERCKER_GIT_REPOSITORY} branch ${WERCKER_GIT_BRANCH} triggered by commit ${WERCKER_GIT_COMMIT} has been completed.\n You can view the build at ${WERCKER_RUN_URL}.\n This should now be listening on ${IP_ADDRESS} and the following ports.\n ${CF_PORTS}", "channel":"#${NOTIFY}"}' ${NOTIFY_URL}
+      curl -X POST -H 'Content-type: application/json' --data '{"text":"The wercker build of '"${WERCKER_GIT_REPOSITORY}"' branch '"${WERCKER_GIT_BRANCH}"' triggered by commit '"${WERCKER_GIT_COMMIT}"' has been completed.\n You can view the build at '"${WERCKER_RUN_URL}"'.\n This should now be listening on '"${IP_ADDRESS}"' and the following ports.\n '"${CF_PORTS}"'", "channel":"'"${NOTIFY}"'"}' ${NOTIFY_URL}
     fi
   else
     reprovision ${CF_OUTPUT} ${RUNNING_CONTAINER} ${IP_ADDRESS}
     echo "Serving on:  ${IP_ADDRESS}:${CF_PORTS}"
-    curl -X POST -H 'Content-type: application/json' --data '{"text":"The wercker build of ${WERCKER_GIT_REPOSITORY} branch ${WERCKER_GIT_BRANCH} triggered by commit ${WERCKER_GIT_COMMIT} has been completed.\n You can view the build at ${WERCKER_RUN_URL}.\n This should now be listening on ${IP_ADDRESS} and the following ports.\n ${CF_PORTS}", "channel":"#${NOTIFY}"}' ${NOTIFY_URL}
+    curl -X POST -H 'Content-type: application/json' --data '{"text":"The wercker build of '"${WERCKER_GIT_REPOSITORY}"' branch '"${WERCKER_GIT_BRANCH}"' triggered by commit '"${WERCKER_GIT_COMMIT}"' has been completed.\n You can view the build at '"${WERCKER_RUN_URL}"'.\n This should now be listening on '"${IP_ADDRESS}"' and the following ports.\n '"${CF_PORTS}"'", "channel":"'"${NOTIFY}"'"}' ${NOTIFY_URL}
 fi
