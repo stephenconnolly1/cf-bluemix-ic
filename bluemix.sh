@@ -77,6 +77,7 @@ if [ -z "${CF_DEBUG}"  ];
 	then 
 		echo "debug not set" 
 	else 
+	 	set -x
 		cf ic ps
 		cf ic ip list
                 cf ic info
