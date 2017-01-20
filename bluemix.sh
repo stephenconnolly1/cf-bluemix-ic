@@ -81,6 +81,8 @@ if [ -z "${CF_DEBUG}"  ];
                 cf ic info
 		cf ic images
 		printenv
+		pwd
+		ls
                 cf ic inspect ${RUNNING_CONTAINER}
 fi
 
