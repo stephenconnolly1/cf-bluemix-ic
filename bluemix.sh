@@ -68,7 +68,7 @@ checkvar
 cfinit
 
 IMAGE_NAME=${CF_CONTAINER}
-CF_OUTPUT=$(cf ic ps --format 'table {{.ID}}|{{.Image}}|{{.Ports}}' |grep ${IMAGE_NAME})
+CF_OUTPUT=$(cf ic ps -a --format 'table {{.ID}}|{{.Image}}|{{.Ports}}' |grep ${IMAGE_NAME})
 RUNNING_CONTAINER=$(echo "$CF_OUTPUT" | grep $IMAGE_NAME | cut -d '|' -f 1)
 
 running ${CF_OUTPUT} ${RUNNING_CONTAINER}
