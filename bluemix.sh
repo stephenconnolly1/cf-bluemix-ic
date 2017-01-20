@@ -73,13 +73,14 @@ RUNNING_CONTAINER=$(echo "$CF_OUTPUT" | grep $IMAGE_NAME | cut -d '|' -f 1)
 
 if [ -z "${CF_DEBUG}"  ]; 
 	then 
-		echo "debug not set" 
+		echo "Debug not set" 
 	else 
 	 	set -x
 		cf ic ps
 		cf ic ip list
                 cf ic info
 		cf ic images
+		printenv
                 cf ic inspect ${RUNNING_CONTAINER}
 fi
 
