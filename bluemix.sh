@@ -26,9 +26,10 @@ function running {
   echo RUNNING - $1
   if [[ -z $1 ]];
     then
+      echo "No existing containers running"
       return 1
     else
-      echo "Container ID=$2"
+      echo "I see container with Container ID=$2"
       return 0
   fi
 }
@@ -71,6 +72,18 @@ CF_OUTPUT=$(cf ic ps --format 'table {{.ID}}|{{.Image}}|{{.Ports}}' |grep ${IMAG
 RUNNING_CONTAINER=$(echo "$CF_OUTPUT" | grep $IMAGE_NAME | cut -d '|' -f 1)
 
 running ${CF_OUTPUT} ${RUNNING_CONTAINER}
+
+if [ -z "${CF_DEBUG}"  ]; 
+	then 
+		echo "debug not set" 
+	else 
+		cf ic ps
+		cf ic ip list
+                cf ic info
+		cf ic images
+                cf ic inspect ${RUNNING_CONTAINER}
+fi
+
 
 if [[ "$?" != "0" ]];
   then
