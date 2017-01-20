@@ -59,7 +59,7 @@ function reprovision {
     else
       cf ic rm $2 --force
   fi
-  CONTAINERID=$(cf ic run $(buildports) registry.eu-gb.bluemix.net/aie_london/$CF_CONTAINER $LAUNCH_CMD)
+  CONTAINERID=$(cf ic run $(buildports) $(if [ ! -z ${WORKDIR} ]; then echo -w=${WORKDIR}; fi) registry.eu-gb.bluemix.net/aie_london/$CF_CONTAINER $LAUNCH_CMD)
   cf ic ip bind $IP_ADDRESS $CONTAINERID
   return 0
 }
