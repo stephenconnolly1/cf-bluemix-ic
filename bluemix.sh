@@ -24,7 +24,11 @@
 
 declare -a VARS=($CF_USER $CF_PASS $CF_ORG $CF_SPACE $CF_API $CF_CONTAINER $CF_PORTS $LAUNCH_CMD)
 
-# Checks that we have the correct number of variables we are expecting to run set. 
+$CF_REGISTRY_NAME=aie_london
+# TODO make into an env var/param 
+$CF_REGISTRY_NAME=spconnolly
+
+# Checks that we have the correct number of variables we are expecting to run set.
 function checkvar {
   NumberOfVars=8
   if [ ${#VARS[@]} -le $NumberOfVars ];
@@ -72,7 +76,7 @@ function buildports {
   done
 }
 
-# Remove our old container and deploy with the same IP or deploy a new container with new IP if no previous container exists. 
+# Remove our old container and deploy with the same IP or deploy a new container with new IP if no previous container exists.
 function reprovision {
   if [ -z "$3" ];
     then
@@ -86,7 +90,7 @@ function reprovision {
     else
       cf ic rm $2 --force
   fi
-  CONTAINERID=$(cf ic run $(buildports) $(if [ ! -z ${WORKDIR} ]; then echo -w=${WORKDIR}; fi) registry.eu-gb.bluemix.net/aie_london/$CF_CONTAINER $LAUNCH_CMD)
+  CONTAINERID=$(cf ic run $(buildports) $(if [ ! -z ${WORKDIR} ]; then echo -w=${WORKDIR}; fi) registry.eu-gb.bluemix.net/$CF_REGISTRY_NAME/$CF_CONTAINER $LAUNCH_CMD)
   cf ic ip bind $IP_ADDRESS $CONTAINERID
   return 0
 }
@@ -98,10 +102,10 @@ IMAGE_NAME=${CF_CONTAINER}
 CF_OUTPUT=$(cf ic ps -a --format 'table {{.ID}}|{{.Image}}|{{.Ports}}' |grep ${IMAGE_NAME})
 RUNNING_CONTAINER=$(echo "$CF_OUTPUT" | grep $IMAGE_NAME | cut -d '|' -f 1)
 
-if [ -z "${CF_DEBUG}"  ]; 
-	then 
-		echo "Debug not set" 
-	else 
+if [ -z "${CF_DEBUG}"  ];
+	then
+		echo "Debug not set"
+	else
 	 	set -x
 		cf ic ps
 		cf ic ip list
