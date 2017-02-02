@@ -7,20 +7,20 @@ The container has to be uploaded to the relevant bluemix environment as it is co
 
 
 # Development
-To deploy the built container to bluemix manually follow the instructions [here](https://console.ng.bluemix.net/docs/containers/container_images_pulling.html)
+To deploy the built container to docker hub or other public registry manually using docker push
 
-To build locally, use the command
+To build locally, where namespace is your dockerhub namespace
 
-    docker build . -t <registry.DomainName>/<namespace>/<image_name>:<version>
+    docker build . -t <namespace>/<image_name>:<version> ...
 e.g.
 
-    docker build . -t registry.eu-gb.bluemix.net/spconnolly/cf-bluemix-ic:1.0.0
+    docker build . -t stephenconnolly/cf-bluemix-ic:1.0.0 -t stephenconnolly/cf-bluemix-ic:latest
 
 
-and then push it up to Bluemix
+and then push it up to your public registry
 
-    docker push registry.DomainName/<namespace>/<image
+    docker push <namespace>/<image>
 
 e.g.
 
-    docker push registry.eu-gb.bluemix.net/spconnolly/cf-bluemix-ic:1.0.0
+    docker push stephenconnolly/cf-bluemix-ic

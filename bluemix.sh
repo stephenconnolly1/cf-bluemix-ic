@@ -24,9 +24,9 @@
 
 declare -a VARS=($CF_USER $CF_PASS $CF_ORG $CF_SPACE $CF_API $CF_CONTAINER $CF_PORTS $LAUNCH_CMD)
 
-$CF_REGISTRY_NAME=aie_london
-# TODO make into an env var/param 
-$CF_REGISTRY_NAME=spconnolly
+CF_REGISTRY_NAME='aie_london'
+# TODO make into an env var/param
+CF_REGISTRY_NAME='spconnolly' # derived from  'cf ic namespace get'
 
 # Checks that we have the correct number of variables we are expecting to run set.
 function checkvar {
@@ -66,6 +66,7 @@ function running {
 #Request an IP address from Bluemix.
 function setip {
   IP_ADDRESS=$(cf ic ip request -q)
+  echo IP Address for port is ${IP_ADDRESS}
 }
 
 #Create our ports argument for the cf ic / docker run.
@@ -102,6 +103,7 @@ IMAGE_NAME=${CF_CONTAINER}
 CF_OUTPUT=$(cf ic ps -a --format 'table {{.ID}}|{{.Image}}|{{.Ports}}' |grep ${IMAGE_NAME})
 RUNNING_CONTAINER=$(echo "$CF_OUTPUT" | grep $IMAGE_NAME | cut -d '|' -f 1)
 
+
 if [ -z "${CF_DEBUG}"  ];
 	then
 		echo "Debug not set"
@@ -109,14 +111,18 @@ if [ -z "${CF_DEBUG}"  ];
 	 	set -x
 		cf ic ps
 		cf ic ip list
-                cf ic info
+    cf ic info
 		cf ic images
 		printenv
 		pwd
 		ls
-                cf ic inspect ${RUNNING_CONTAINER}
+    if [ ${RUNNING_CONTAINER} ];
+      then
+        cf ic inspect ${RUNNING_CONTAINER}
+    fi
 fi
 
+# check whether there is already a container running
 running ${CF_OUTPUT} ${RUNNING_CONTAINER}
 
 if [[ "$?" != "0" ]];
