@@ -51,20 +51,20 @@ function cfinit {
 }
 
 #Check to see if a container is already running using the image we are trying to deploy.
-function running {
-  echo RUNNING - $1
+function is_container_running {
+  echo "Running containers - '$1'"
   if [[ -z $1 ]];
     then
       echo "No existing containers running"
       return 1
     else
-      echo "I see container with Container ID=$2"
+      echo "I see container with Container ID=$1"
       return 0
   fi
 }
 
-#Request an IP address from Bluemix.
-function setip {
+#Request a public IP address from Bluemix.
+function request_ip {
   IP_ADDRESS=$(cf ic ip request -q)
   echo IP Address for port is ${IP_ADDRESS}
 }
@@ -78,10 +78,12 @@ function buildports {
 }
 
 # Remove our old container and deploy with the same IP or deploy a new container with new IP if no previous container exists.
+# usage: reprovision ${CF_OUTPUT} ${RUNNING_CONTAINER} ${IP_ADDRESS}
 function reprovision {
   if [ -z "$3" ];
     then
-      IP_ADDRESS=$(echo $1 | grep -oE '((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])')
+      # re-use existing Public IP address
+      IP_ADDRESS=$(cf ic inspect ${2} --format='{{.NetworkSettings.PublicIpAddress}}')
     else
       IP_ADDRESS=$3
   fi
@@ -89,20 +91,28 @@ function reprovision {
     then
       echo "No Previous container, we have nothing to remove".
     else
+      # stop container and remove image from local cache
       cf ic rm $2 --force
   fi
+  # Start new container and bind public IP address
   CONTAINERID=$(cf ic run $(buildports) $(if [ ! -z ${WORKDIR} ]; then echo -w ${WORKDIR}; fi) registry.eu-gb.bluemix.net/$CF_REGISTRY_NAME/$CF_CONTAINER $LAUNCH_CMD)
   cf ic ip bind $IP_ADDRESS $CONTAINERID
   return 0
+}
+
+function post_to_slack {
+  # Post the status of our build to a webhook, in this case slack.
+  curl -X POST -H 'Content-type: application/json' --data '{"text":"The wercker build of '"${WERCKER_GIT_REPOSITORY}"' branch '"${WERCKER_GIT_BRANCH}"' triggered by commit '"${WERCKER_GIT_COMMIT}"' has been completed.\n You can view the build at '"${WERCKER_RUN_URL}"'.\n This should now be listening on '"${IP_ADDRESS}"' and the following ports.\n '"${CF_PORTS}"'", "channel":"'"${NOTIFY}"'"}' ${NOTIFY_URL}
 }
 
 checkvar
 cfinit
 
 IMAGE_NAME=${CF_CONTAINER}
-CF_OUTPUT=$(cf ic ps -a --format 'table {{.ID}}|{{.Image}}|{{.Ports}}' |grep ${IMAGE_NAME})
-RUNNING_CONTAINER=$(echo "$CF_OUTPUT" | grep $IMAGE_NAME | cut -d '|' -f 1)
-
+# CF_OUTPUT=$(cf ic ps -a --format 'table {{.ID}}|{{.Image}}|{{.Ports}}' |grep ${IMAGE_NAME})
+# RUNNING_CONTAINER=$(echo "$CF_OUTPUT" | grep $IMAGE_NAME | cut -d '|' -f 1)
+CF_OUTPUT="NULL"
+RUNNING_CONTAINER=$(cf ic ps -a --filter {{.ancestor=$CF_CONTAINER}} --filter {{.status=running}} --format {{.ID}} )
 
 if [ -z "${CF_DEBUG}"  ];
 	then
@@ -123,26 +133,26 @@ if [ -z "${CF_DEBUG}"  ];
 fi
 
 # check whether there is already a container running
-running ${CF_OUTPUT} ${RUNNING_CONTAINER}
+is_container_running ${RUNNING_CONTAINER}
 
 if [[ "$?" != "0" ]];
   then
+    # no containers running
     # Check if port exposed, if so request an ip, else return 0.
     if [[ -z "${CF_PORTS}" ]]; then
-      echo "Set a port to obtain an ip, otherwise we assume none is required."
+      echo "No port set, no public IP is required."
       return 0;
     else
-      setip ${RUNNING_CONTAINER}
+      request_ip ${RUNNING_CONTAINER}
       reprovision ${CF_OUTPUT} ${RUNNING_CONTAINER} ${IP_ADDRESS}
       echo "Serving on: ${IP_ADDRESS}:${CF_PORTS}"
-      # Post the status of our build to a webhook, in this case slack.
-      curl -X POST -H 'Content-type: application/json' --data '{"text":"The wercker build of '"${WERCKER_GIT_REPOSITORY}"' branch '"${WERCKER_GIT_BRANCH}"' triggered by commit '"${WERCKER_GIT_COMMIT}"' has been completed.\n You can view the build at '"${WERCKER_RUN_URL}"'.\n This should now be listening on '"${IP_ADDRESS}"' and the following ports.\n '"${CF_PORTS}"'", "channel":"'"${NOTIFY}"'"}' ${NOTIFY_URL}
+      post_to_slack
     fi
   else
+    # previous container already running
     reprovision ${CF_OUTPUT} ${RUNNING_CONTAINER} ${IP_ADDRESS}
     echo "Serving on:  ${IP_ADDRESS}:${CF_PORTS}"
-    # Post the status of our build to a webhook, in this case slack.
-    curl -X POST -H 'Content-type: application/json' --data '{"text":"The wercker build of '"${WERCKER_GIT_REPOSITORY}"' branch '"${WERCKER_GIT_BRANCH}"' triggered by commit '"${WERCKER_GIT_COMMIT}"' has been completed.\n You can view the build at '"${WERCKER_RUN_URL}"'.\n This should now be listening on '"${IP_ADDRESS}"' and the following ports.\n '"${CF_PORTS}"'", "channel":"'"${NOTIFY}"'"}' ${NOTIFY_URL}
+    post_to_slack
 fi
 # Test for success...
 curl http://${IP_ADDRESS}:${CF_PORTS}
