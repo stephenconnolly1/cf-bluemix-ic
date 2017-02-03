@@ -91,7 +91,7 @@ function reprovision {
     else
       cf ic rm $2 --force
   fi
-  CONTAINERID=$(cf ic run $(buildports) $(if [ ! -z ${WORKDIR} ]; then echo -w=${WORKDIR}; fi) registry.eu-gb.bluemix.net/$CF_REGISTRY_NAME/$CF_CONTAINER $LAUNCH_CMD)
+  CONTAINERID=$(cf ic run $(buildports) $(if [ ! -z ${WORKDIR} ]; then echo -w ${WORKDIR}; fi) registry.eu-gb.bluemix.net/$CF_REGISTRY_NAME/$CF_CONTAINER $LAUNCH_CMD)
   cf ic ip bind $IP_ADDRESS $CONTAINERID
   return 0
 }
@@ -144,3 +144,5 @@ if [[ "$?" != "0" ]];
     # Post the status of our build to a webhook, in this case slack.
     curl -X POST -H 'Content-type: application/json' --data '{"text":"The wercker build of '"${WERCKER_GIT_REPOSITORY}"' branch '"${WERCKER_GIT_BRANCH}"' triggered by commit '"${WERCKER_GIT_COMMIT}"' has been completed.\n You can view the build at '"${WERCKER_RUN_URL}"'.\n This should now be listening on '"${IP_ADDRESS}"' and the following ports.\n '"${CF_PORTS}"'", "channel":"'"${NOTIFY}"'"}' ${NOTIFY_URL}
 fi
+# Test for success...
+curl http://${IP_ADDRESS}:${CF_PORTS}
